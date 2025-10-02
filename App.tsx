@@ -1083,6 +1083,8 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [warehouseSearchTerm, setWarehouseSearchTerm] = useState('');
     const [employeeSearchTerm, setEmployeeSearchTerm] = useState('');
+    const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
+    const [warehouseToDelete, setWarehouseToDelete] = useState<Warehouse | null>(null);
 
     const filteredWarehouses = useMemo(() => {
         if (!warehouseSearchTerm) return warehouses;
@@ -1110,17 +1112,26 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
         setIsWarehouseModalOpen(true);
     };
 
-    const handleDeleteWarehouse = (warehouseId: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa kho này? Mọi vật tư tồn kho và phân công nhân viên liên quan cũng sẽ bị xóa vĩnh viễn.')) {
-            const remainingWarehouses = warehouses.filter(w => w.id !== warehouseId);
-            setWarehouses(remainingWarehouses);
-            setEmployees(prev => prev.map(e => e.warehouseId === warehouseId ? { ...e, warehouseId: undefined } : e));
-            setInventory(prev => prev.filter(i => i.warehouseId !== warehouseId));
-            
-            if (selectedWarehouseId === warehouseId) {
-                setSelectedWarehouseId(remainingWarehouses[0]?.id || null);
-            }
+    const handleDeleteWarehouse = (warehouse: Warehouse) => {
+        setWarehouseToDelete(warehouse);
+        setIsConfirmDeleteModalOpen(true);
+    };
+    
+    const confirmDeleteWarehouse = () => {
+        if (!warehouseToDelete) return;
+
+        const warehouseId = warehouseToDelete.id;
+        const remainingWarehouses = warehouses.filter(w => w.id !== warehouseId);
+        setWarehouses(remainingWarehouses);
+        setEmployees(prev => prev.map(e => e.warehouseId === warehouseId ? { ...e, warehouseId: undefined } : e));
+        setInventory(prev => prev.filter(i => i.warehouseId !== warehouseId));
+        
+        if (selectedWarehouseId === warehouseId) {
+            setSelectedWarehouseId(remainingWarehouses[0]?.id || null);
         }
+        
+        setIsConfirmDeleteModalOpen(false);
+        setWarehouseToDelete(null);
     };
 
     const handleSaveWarehouse = (warehouse: Warehouse) => {
@@ -1199,7 +1210,7 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
                                 </div>
                                 <div className="flex space-x-2 flex-shrink-0 mt-4 sm:mt-0">
                                      <button onClick={() => handleEditWarehouse(selectedWarehouse)} className="p-2 rounded-full hover:bg-blue-100" title="Chỉnh sửa thông tin kho"><IconEdit /></button>
-                                     <button onClick={() => handleDeleteWarehouse(selectedWarehouse.id)} className="p-2 rounded-full hover:bg-red-100" title="Xóa kho"><IconDelete /></button>
+                                     <button onClick={() => handleDeleteWarehouse(selectedWarehouse)} className="p-2 rounded-full hover:bg-red-100" title="Xóa kho"><IconDelete /></button>
                                 </div>
                             </div>
                         </div>
@@ -1242,6 +1253,20 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
 
             <WarehouseModal isOpen={isWarehouseModalOpen} onClose={() => setIsWarehouseModalOpen(false)} onSave={handleSaveWarehouse} warehouse={editingWarehouse} warehouses={warehouses} employees={employees} />
             <AssignEmployeeToWarehouseModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} onSave={handleSaveAssignment} availableEmployees={availableEmployees} warehouseName={selectedWarehouse?.name} warehouses={warehouses} />
+            {warehouseToDelete && (
+                <ConfirmationModal
+                    isOpen={isConfirmDeleteModalOpen}
+                    onClose={() => setIsConfirmDeleteModalOpen(false)}
+                    onConfirm={confirmDeleteWarehouse}
+                    title="Xác nhận Xóa Kho"
+                    message={
+                        <>
+                            <p>Bạn có chắc chắn muốn xóa kho <span className="font-bold">{warehouseToDelete.name}</span>?</p>
+                            <p className="text-sm text-red-600 font-semibold mt-2">Hành động này không thể hoàn tác. Mọi dữ liệu tồn kho và phân công nhân viên tại kho này sẽ bị xóa vĩnh viễn.</p>
+                        </>
+                    }
+                />
+            )}
         </div>
     );
 };
