@@ -1,11 +1,11 @@
 
-
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Page } from './constants';
 import { UserRole, type User, type Employee, type Warehouse, type Material, type Inventory, type Transaction, type TransactionType, type TimesheetEntry, type AttendanceStatus } from './types';
 import { mockEmployees, mockWarehouses, mockMaterials, mockInventory, mockTransactions, mockTimesheets } from './data/mockData';
 
 // --- ICONS ---
+const IconMenu = () => <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>;
 const IconDashboard = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 const IconUsers = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197" /></svg>;
 const IconWarehouse = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20 7L12 3L4 7L12 11L20 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 7V17L12 21L20 17V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M12 11V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M16 9L8 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -46,7 +46,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error, setError }) => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div className="p-8 bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex justify-center mb-6">
           <div className="w-20 h-20 bg-green-primary rounded-full flex items-center justify-center">
             <span className="text-white text-4xl font-bold">CDX</span>
@@ -102,9 +102,10 @@ interface SidebarProps {
   currentPage: Page;
   setPage: (page: Page) => void;
   userRole: UserRole;
+  isOpen: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, userRole }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, userRole, isOpen }) => {
     const navItems = [
         { page: Page.Dashboard, icon: <IconDashboard />, roles: [UserRole.Admin, UserRole.User] },
         { page: Page.HR, icon: <IconUsers />, roles: [UserRole.Admin] },
@@ -117,14 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, userRole }) => 
     ];
 
     return (
-        <aside className="w-64 bg-white shadow-md flex flex-col">
-            <div className="h-16 flex items-center justify-center border-b">
+        <aside className={`fixed inset-y-0 left-0 bg-white shadow-md flex flex-col z-30 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="h-16 flex items-center justify-center border-b flex-shrink-0">
                 <div className="w-10 h-10 bg-green-primary rounded-full flex items-center justify-center mr-2">
                     <span className="text-white text-xl font-bold">CDX</span>
                 </div>
                 <h1 className="text-xl font-bold text-gray-800">Con Đường Xanh</h1>
             </div>
-            <nav className="flex-grow p-4">
+            <nav className="flex-grow p-4 overflow-y-auto">
                 <ul>
                     {navItems.filter(item => item.roles.includes(userRole)).map(item => (
                         <li key={item.page}>
@@ -149,15 +150,21 @@ interface HeaderProps {
     onLogout: () => void;
     onOpenSettings: () => void;
     currentPage: string;
+    onToggleSidebar: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout, onOpenSettings, currentPage }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout, onOpenSettings, currentPage, onToggleSidebar }) => {
     return (
-        <header className="h-16 bg-white border-b flex items-center justify-between px-8">
-            <h2 className="text-2xl font-semibold text-gray-700">{currentPage}</h2>
+        <header className="h-16 bg-white border-b flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
             <div className="flex items-center">
-                <span className="text-gray-600 mr-4">Chào, <span className="font-bold">{user.username}</span> ({user.role})</span>
-                 <button onClick={onOpenSettings} className="text-gray-500 hover:text-blue-500 mr-4" title="Cài đặt">
+                 <button onClick={onToggleSidebar} className="text-gray-500 focus:outline-none focus:text-gray-700 md:hidden mr-4">
+                    <IconMenu />
+                </button>
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700">{currentPage}</h2>
+            </div>
+            <div className="flex items-center">
+                <span className="hidden sm:inline text-gray-600 mr-4">Chào, <span className="font-bold">{user.username}</span> ({user.role})</span>
+                 <button onClick={onOpenSettings} className="text-gray-500 hover:text-blue-500 mr-2 sm:mr-4" title="Cài đặt">
                     <IconSettings />
                 </button>
                 <button onClick={onLogout} className="text-gray-500 hover:text-red-500" title="Đăng xuất">
@@ -181,7 +188,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                 <div className="flex items-start">
                     <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -245,7 +252,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentT
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                 <h3 className="text-xl font-semibold mb-4">Cài đặt Cảnh báo</h3>
                 <div className="space-y-4">
@@ -285,22 +292,20 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ employees, warehouses, in
     const summaryCards = [
         { title: 'Tổng số Nhân viên', value: employees.length, icon: <IconUsers /> },
         { title: 'Tổng số Kho hàng', value: warehouses.length, icon: <IconWarehouse /> },
-        { title: 'Tổng Vật tư Tồn kho', value: totalInventory, icon: <IconInventory /> },
+        { title: 'Tổng Vật tư Tồn kho', value: totalInventory.toLocaleString(), icon: <IconInventory /> },
     ];
 
     return (
-        <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {summaryCards.map((card, index) => (
-                    <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center">
-                        <div className="p-3 bg-green-light rounded-full text-green-primary">{card.icon}</div>
-                        <div className="ml-4">
-                            <p className="text-sm text-gray-500">{card.title}</p>
-                            <p className="text-2xl font-bold text-gray-800">{card.value}</p>
-                        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {summaryCards.map((card, index) => (
+                <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center">
+                    <div className="p-3 bg-green-light rounded-full text-green-primary">{card.icon}</div>
+                    <div className="ml-4">
+                        <p className="text-sm text-gray-500">{card.title}</p>
+                        <p className="text-2xl font-bold text-gray-800">{card.value}</p>
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
         </div>
     );
 };
@@ -354,7 +359,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, onSave, 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
                 <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Chỉnh sửa Nhân viên' : 'Thêm Nhân viên mới'}</h3>
                 <form onSubmit={handleSubmit}>
@@ -408,7 +413,7 @@ const AssignWarehouseModal: React.FC<AssignWarehouseModalProps> = ({ isOpen, onC
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                 <h3 className="text-xl font-semibold mb-4">Điều động Nhân viên</h3>
                 <p className="mb-4">Điều động <span className="font-bold">{employee.name}</span> đến kho:</p>
@@ -469,7 +474,7 @@ const TimesheetModal: React.FC<TimesheetModalProps> = ({ isOpen, onClose, onSave
     };
     
     return (
-         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
                 <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Sửa' : 'Thêm'} Lượt Chấm công</h3>
                 <form onSubmit={handleSubmit}>
@@ -600,8 +605,8 @@ const HRManagementPage: React.FC<HRManagementPageProps> = ({ employees, setEmplo
     const getWarehouseName = (warehouseId?: string) => warehouses.find(w => w.id === warehouseId)?.name || 'Chưa phân công';
 
     return (
-        <div className="p-8">
-            <div className="border-b border-gray-200 mb-6">
+        <div>
+            <div className="border-b border-gray-200 mb-6 overflow-x-auto">
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                     <button onClick={() => setActiveTab('employees')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'employees' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Danh sách Nhân viên</button>
                     <button onClick={() => setActiveTab('timesheet')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'timesheet' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Chấm công</button>
@@ -614,37 +619,39 @@ const HRManagementPage: React.FC<HRManagementPageProps> = ({ employees, setEmplo
                      <div className="flex justify-end mb-4">
                         <button onClick={handleAddNewEmployee} className="bg-green-primary hover:bg-green-secondary text-white font-bold py-2 px-4 rounded-lg flex items-center"><IconPlus />Thêm Nhân viên</button>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                             <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Mã NV</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Họ tên</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">SĐT</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Kho làm việc</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Trạng thái</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {employees.map(e => (
-                                    <tr key={e.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{e.id}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{e.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{e.phone}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{getWarehouseName(e.warehouseId)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${e.status === 'Đang làm' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{e.status}</span></td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-4">
-                                                <button onClick={() => handleOpenAssignModal(e)} title="Điều động"><IconTruck /></button>
-                                                <button onClick={() => handleEditEmployee(e)} title="Chỉnh sửa"><IconEdit /></button>
-                                                <button onClick={() => handleDeleteEmployee(e)} title="Xóa"><IconDelete /></button>
-                                            </div>
-                                        </td>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Mã NV</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Họ tên</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">SĐT</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Kho làm việc</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Trạng thái</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium">Hành động</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {employees.map(e => (
+                                        <tr key={e.id}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{e.id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{e.name}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{e.phone}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{getWarehouseName(e.warehouseId)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${e.status === 'Đang làm' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{e.status}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div className="flex items-center justify-end space-x-2 sm:space-x-4">
+                                                    <button onClick={() => handleOpenAssignModal(e)} title="Điều động"><IconTruck /></button>
+                                                    <button onClick={() => handleEditEmployee(e)} title="Chỉnh sửa"><IconEdit /></button>
+                                                    <button onClick={() => handleDeleteEmployee(e)} title="Xóa"><IconDelete /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -654,37 +661,39 @@ const HRManagementPage: React.FC<HRManagementPageProps> = ({ employees, setEmplo
                     <div className="flex justify-end mb-4">
                         <button onClick={handleAddNewTimesheet} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"><IconPlus />Thêm lượt chấm công</button>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                             <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Ngày</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Mã NV</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Họ tên</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium">Trạng thái</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium">Hành động</th>
-                                </tr>
-                            </thead>
-                             <tbody className="bg-white divide-y divide-gray-200">
-                                {timesheets.map(t => {
-                                    const employee = employees.find(e => e.id === t.employeeId);
-                                    return (
-                                        <tr key={t.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{t.date}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{t.employeeId}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{employee?.name || 'N/A'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{t.status}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end space-x-4">
-                                                    <button onClick={() => handleEditTimesheet(t)} title="Chỉnh sửa"><IconEdit /></button>
-                                                    <button onClick={() => handleDeleteTimesheet(t.id)} title="Xóa"><IconDelete /></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                             </tbody>
-                        </table>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Ngày</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Mã NV</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Họ tên</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium">Trạng thái</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {timesheets.map(t => {
+                                        const employee = employees.find(e => e.id === t.employeeId);
+                                        return (
+                                            <tr key={t.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm">{t.date}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{t.employeeId}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm">{employee?.name || 'N/A'}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm">{t.status}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex items-center justify-end space-x-2 sm:space-x-4">
+                                                        <button onClick={() => handleEditTimesheet(t)} title="Chỉnh sửa"><IconEdit /></button>
+                                                        <button onClick={() => handleDeleteTimesheet(t.id)} title="Xóa"><IconDelete /></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                  </div>
             )}
@@ -773,7 +782,7 @@ const MaterialModal: React.FC<MaterialModalProps> = ({ isOpen, onClose, onSave, 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
                 <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Chỉnh sửa Vật tư' : 'Thêm Vật tư mới'}</h3>
                 <form onSubmit={handleSubmit}>
@@ -844,7 +853,7 @@ const MaterialsManagementPage: React.FC<MaterialsManagementPageProps> = ({ mater
     };
 
     return (
-        <div className="p-8">
+        <div>
             <div className="flex justify-end mb-4">
                 <button onClick={handleAddNew} className="bg-green-primary hover:bg-green-secondary text-white font-bold py-2 px-4 rounded-lg flex items-center">
                     <IconPlus /> Thêm Vật tư
@@ -873,7 +882,7 @@ const MaterialsManagementPage: React.FC<MaterialsManagementPageProps> = ({ mater
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{material.specification}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{material.unit}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-4">
+                                        <div className="flex items-center justify-end space-x-2 sm:space-x-4">
                                             <button onClick={() => handleEdit(material)} title="Chỉnh sửa"><IconEdit /></button>
                                             <button onClick={() => handleDelete(material.id)} title="Xóa"><IconDelete /></button>
                                         </div>
@@ -941,7 +950,7 @@ const WarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onSave
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
                 <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Chỉnh sửa Kho' : 'Thêm Kho mới'}</h3>
                 <form onSubmit={handleSubmit}>
@@ -1015,7 +1024,7 @@ const AssignEmployeeToWarehouseModal: React.FC<AssignEmployeeToWarehouseModalPro
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 flex flex-col" style={{height: '80vh'}}>
                 <h3 className="text-xl font-semibold mb-2">Gán Nhân viên cho Kho <span className="text-green-primary font-bold">{warehouseName}</span></h3>
                 <p className="text-sm text-gray-500 mb-4">Chọn một hoặc nhiều nhân viên để gán vào kho này.</p>
@@ -1148,9 +1157,9 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
     const totalItemCount = useMemo(() => inventoryInWarehouse.reduce((sum, i) => sum + i.quantity, 0), [inventoryInWarehouse]);
     
     return (
-        <div className="flex h-full bg-gray-light">
-            <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto flex flex-col">
-                <div className="p-4 border-b sticky top-0 bg-white z-10">
+        <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="w-full md:w-1/3 lg:w-1/4 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
+                <div className="p-4 border-b">
                      <h3 className="text-lg font-semibold text-gray-800 mb-3">Danh sách Kho</h3>
                      <input 
                         type="text"
@@ -1160,7 +1169,7 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
                      />
                 </div>
-                <div className="p-2 flex-grow">
+                <div className="p-2">
                     {filteredWarehouses.length > 0 ? filteredWarehouses.map(w => (
                          <div key={w.id} onClick={() => setSelectedWarehouseId(w.id)} className={`p-4 rounded-lg cursor-pointer mb-2 transition-all duration-200 ${selectedWarehouseId === w.id ? 'bg-green-100 border-l-4 border-green-500' : 'hover:bg-gray-50'}`}>
                             <p className="font-bold text-gray-800">{w.name}</p>
@@ -1170,25 +1179,25 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
                         <div className="p-4 text-center text-gray-500">Không tìm thấy kho.</div>
                     )}
                 </div>
-                 <div className="p-4 mt-auto border-t sticky bottom-0 bg-white">
+                 <div className="p-4 mt-auto border-t">
                     <button onClick={handleAddNewWarehouse} className="w-full bg-green-primary hover:bg-green-secondary text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
                         <IconPlus /> Thêm Kho mới
                     </button>
                 </div>
             </div>
 
-            <div className="w-2/3 p-8 overflow-y-auto">
+            <div className="w-full md:w-2/3 lg:w-3/4 p-4 sm:p-6 lg:p-8">
                 {selectedWarehouse ? (
                     <div className="space-y-8">
-                        <div className="bg-white p-6 rounded-lg shadow-md">
-                            <div className="flex justify-between items-start mb-4">
+                        <div className="bg-white rounded-lg">
+                            <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-2xl font-bold text-gray-800">{selectedWarehouse.name}</h3>
                                     <p className="text-gray-600 mt-2"><span className="font-semibold">Địa chỉ:</span> {selectedWarehouse.address}</p>
                                     {manager && <p className="text-gray-600"><span className="font-semibold">Quản lý:</span> {manager.name} ({manager.phone})</p>}
                                     {selectedWarehouse.capacity && <p className="text-gray-600"><span className="font-semibold">Sức chứa:</span> {selectedWarehouse.capacity.toLocaleString()} đơn vị</p>}
                                 </div>
-                                <div className="flex space-x-2 flex-shrink-0">
+                                <div className="flex space-x-2 flex-shrink-0 mt-4 sm:mt-0">
                                      <button onClick={() => handleEditWarehouse(selectedWarehouse)} className="p-2 rounded-full hover:bg-blue-100" title="Chỉnh sửa thông tin kho"><IconEdit /></button>
                                      <button onClick={() => handleDeleteWarehouse(selectedWarehouse.id)} className="p-2 rounded-full hover:bg-red-100" title="Xóa kho"><IconDelete /></button>
                                 </div>
@@ -1196,15 +1205,15 @@ const WarehouseManagementPage: React.FC<WarehouseManagementPageProps> = ({ wareh
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-4 rounded-lg shadow-md flex items-center"><div className="p-3 bg-blue-100 rounded-full text-blue-500"><IconUsers/></div><div className="ml-4"><p className="text-sm text-gray-500">Tổng số Nhân viên</p><p className="text-xl font-bold text-gray-800">{employees.filter(e => e.warehouseId === selectedWarehouse.id).length}</p></div></div>
-                            <div className="bg-white p-4 rounded-lg shadow-md flex items-center"><div className="p-3 bg-yellow-100 rounded-full text-yellow-500"><IconBox/></div><div className="ml-4"><p className="text-sm text-gray-500">Loại Vật tư</p><p className="text-xl font-bold text-gray-800">{uniqueMaterialCount}</p></div></div>
-                            <div className="bg-white p-4 rounded-lg shadow-md flex items-center"><div className="p-3 bg-green-100 rounded-full text-green-500"><IconInventory/></div><div className="ml-4"><p className="text-sm text-gray-500">Tổng Tồn kho</p><p className="text-xl font-bold text-gray-800">{totalItemCount.toLocaleString()}</p></div></div>
+                            <div className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center"><div className="p-3 bg-blue-100 rounded-full text-blue-500"><IconUsers/></div><div className="ml-4"><p className="text-sm text-gray-500">Tổng số Nhân viên</p><p className="text-xl font-bold text-gray-800">{employees.filter(e => e.warehouseId === selectedWarehouse.id).length}</p></div></div>
+                            <div className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center"><div className="p-3 bg-yellow-100 rounded-full text-yellow-500"><IconBox/></div><div className="ml-4"><p className="text-sm text-gray-500">Loại Vật tư</p><p className="text-xl font-bold text-gray-800">{uniqueMaterialCount}</p></div></div>
+                            <div className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center"><div className="p-3 bg-green-100 rounded-full text-green-500"><IconInventory/></div><div className="ml-4"><p className="text-sm text-gray-500">Tổng Tồn kho</p><p className="text-xl font-bold text-gray-800">{totalItemCount.toLocaleString()}</p></div></div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg shadow-md">
-                             <div className="flex justify-between items-center mb-4">
+                        <div>
+                             <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
                                 <div><h4 className="text-xl font-semibold text-gray-700">Nhân viên tại Kho</h4><p className="text-sm text-gray-500">Danh sách nhân viên đang được phân công tại kho này.</p></div>
-                                <button onClick={() => setIsAssignModalOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg flex items-center text-sm"><IconPlus /> Gán Nhân viên</button>
+                                <button onClick={() => setIsAssignModalOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg flex items-center text-sm mt-3 sm:mt-0 w-full sm:w-auto justify-center"><IconPlus /> Gán Nhân viên</button>
                             </div>
                             <input type="text" placeholder="Tìm nhân viên trong kho..." value={employeeSearchTerm} onChange={(e) => setEmployeeSearchTerm(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-green-500 focus:border-green-500" />
                             <div className="overflow-x-auto">
@@ -1321,7 +1330,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onClose, on
     }[type];
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
                 <h3 className="text-xl font-semibold mb-4">{title}</h3>
                 <form onSubmit={handleSubmit}>
@@ -1440,8 +1449,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ transactions, setTr
     }
 
     return (
-        <div className="p-8">
-            <div className="flex justify-end mb-4 space-x-2">
+        <div>
+            <div className="flex flex-col sm:flex-row justify-end mb-4 space-y-2 sm:space-y-0 sm:space-x-2">
                 <button onClick={() => handleOpenModal('Nhập kho')} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Nhập Kho</button>
                 <button onClick={() => handleOpenModal('Xuất kho')} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Xuất Kho</button>
                 <button onClick={() => handleOpenModal('Chuyển kho')} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg">Chuyển Kho</button>
@@ -1512,52 +1521,50 @@ const InventoryPage: React.FC<InventoryPageProps> = ({ inventory, materials, war
     }, [inventory, selectedWarehouse]);
 
     return (
-        <div className="p-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">Báo cáo Tồn kho</h3>
-                    <div className="flex items-center space-x-2">
-                         <label htmlFor="warehouse-filter" className="text-sm font-medium text-gray-700">Lọc theo kho:</label>
-                         <select
-                            id="warehouse-filter"
-                            value={selectedWarehouse}
-                            onChange={(e) => setSelectedWarehouse(e.target.value)}
-                            className="block w-48 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                        >
-                            <option value="">Tất cả các kho</option>
-                            {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                        </select>
-                    </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                <h3 className="text-xl font-semibold">Báo cáo Tồn kho</h3>
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                     <label htmlFor="warehouse-filter" className="text-sm font-medium text-gray-700">Lọc theo kho:</label>
+                     <select
+                        id="warehouse-filter"
+                        value={selectedWarehouse}
+                        onChange={(e) => setSelectedWarehouse(e.target.value)}
+                        className="block w-full sm:w-48 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                    >
+                        <option value="">Tất cả các kho</option>
+                        {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kho</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã Vật tư</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên Vật tư</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số lượng Tồn</th>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kho</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã Vật tư</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên Vật tư</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số lượng Tồn</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredInventory.map(item => (
+                            <tr key={`${item.warehouseId}-${item.materialId}`} className={item.quantity < minStockThreshold ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{getName(item.warehouseId, 'warehouse')}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.materialId}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getName(item.materialId, 'material')}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                                    {item.quantity}
+                                    {item.quantity < minStockThreshold && (
+                                        <span className="ml-3 px-2 py-1 text-xs font-semibold text-red-800 bg-red-200 rounded-full">
+                                            Tồn kho thấp
+                                        </span>
+                                    )}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredInventory.map(item => (
-                                <tr key={`${item.warehouseId}-${item.materialId}`} className={item.quantity < minStockThreshold ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{getName(item.warehouseId, 'warehouse')}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.materialId}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getName(item.materialId, 'material')}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">
-                                        {item.quantity}
-                                        {item.quantity < minStockThreshold && (
-                                            <span className="ml-3 px-2 py-1 text-xs font-semibold text-red-800 bg-red-200 rounded-full">
-                                                Tồn kho thấp
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
@@ -1593,19 +1600,19 @@ const DetailedInventoryReportPage: React.FC<DetailedInventoryReportPageProps> = 
     }, [warehouses, selectedWarehouse]);
 
     return (
-        <div className="p-8">
-            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div>
+            <div className="flex flex-col md:flex-row flex-wrap justify-between items-center mb-6 gap-4">
                  <div>
                     <h3 className="text-2xl font-bold text-gray-800">Báo cáo Tồn kho chi tiết</h3>
                     <p className="text-gray-600">Xem số lượng tồn kho của từng vật tư tại mỗi kho hàng.</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 w-full md:w-auto">
                     <label htmlFor="detailed-warehouse-filter" className="text-sm font-medium text-gray-700">Lọc theo kho:</label>
                     <select
                         id="detailed-warehouse-filter"
                         value={selectedWarehouse}
                         onChange={(e) => setSelectedWarehouse(e.target.value)}
-                         className="block w-48 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                         className="block w-full md:w-48 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
                     >
                         <option value="">Tất cả các kho</option>
                         {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -1689,37 +1696,35 @@ const InventoryReportPage: React.FC<InventoryReportPageProps> = ({ inventory, ma
     }, [materials, inventory, warehouses]);
 
     return (
-        <div className="p-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold mb-4">Báo cáo Tồn kho Tổng hợp</h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">Mã VT</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-16 bg-gray-50 z-10">Tên Vật tư</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn vị</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-bold">Tổng Tồn</th>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold mb-4">Báo cáo Tồn kho Tổng hợp</h3>
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">Mã VT</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-16 bg-gray-50 z-10">Tên Vật tư</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn vị</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-bold">Tổng Tồn</th>
+                            {warehouses.map(w => (
+                                <th key={w.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{w.name}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {reportData.map(row => (
+                            <tr key={row.material.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white">{row.material.id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 sticky left-16 bg-white">{row.material.name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{row.material.unit}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{row.totalQuantity}</td>
                                 {warehouses.map(w => (
-                                    <th key={w.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{w.name}</th>
+                                    <td key={w.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{row.warehouseQuantities[w.id] || 0}</td>
                                 ))}
                             </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {reportData.map(row => (
-                                <tr key={row.material.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white">{row.material.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 sticky left-16 bg-white">{row.material.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{row.material.unit}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{row.totalQuantity}</td>
-                                    {warehouses.map(w => (
-                                        <td key={w.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{row.warehouseQuantities[w.id] || 0}</td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
@@ -1733,6 +1738,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Dashboard);
   const [minStockThreshold, setMinStockThreshold] = useState(50);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // State Management for data
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
@@ -1754,6 +1760,11 @@ export default function App() {
   
   const handleSaveSettings = (newThreshold: number) => {
     setMinStockThreshold(newThreshold);
+  };
+
+  const handleSetPage = (page: Page) => {
+    setCurrentPage(page);
+    setIsSidebarOpen(false);
   };
 
   const renderPage = () => {
@@ -1805,11 +1816,29 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar currentPage={currentPage} setPage={setCurrentPage} userRole={user.role} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} onLogout={handleLogout} currentPage={currentPage} onOpenSettings={() => setIsSettingsModalOpen(true)} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+    <div className="relative min-h-screen md:flex bg-gray-100">
+      {isSidebarOpen && (
+        <div 
+            onClick={() => setIsSidebarOpen(false)} 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            aria-hidden="true"
+        ></div>
+      )}
+      <Sidebar 
+        currentPage={currentPage} 
+        setPage={handleSetPage} 
+        userRole={user.role}
+        isOpen={isSidebarOpen} 
+      />
+      <div className="flex-1 flex flex-col max-w-full overflow-hidden">
+        <Header 
+            user={user} 
+            onLogout={handleLogout} 
+            currentPage={currentPage} 
+            onOpenSettings={() => setIsSettingsModalOpen(true)}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+        <main className="flex-1 overflow-y-auto bg-gray-200 p-4 sm:p-6 lg:p-8">
             {renderPage()}
         </main>
       </div>
