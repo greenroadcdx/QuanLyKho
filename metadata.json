@@ -1,0 +1,5 @@
+{
+  "name": "Con Đường Xanh - Quản lý kho",
+  "description": "Một ứng dụng web toàn diện để quản lý kho và nhân sự cho Con Đường Xanh, giúp tự động hóa và tối ưu hóa các quy trình nghiệp vụ. Ứng dụng bao gồm các module quản lý nhân sự, chấm công, tính lương, và quản lý kho hàng với các chức năng nhập, xuất, chuyển kho, theo dõi tồn kho và báo cáo chi tiết.",
+  "requestFramePermissions": []
+}
